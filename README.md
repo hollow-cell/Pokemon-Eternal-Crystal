@@ -44,3 +44,6 @@ Other disassembly projects:
 [irc]: https://kiwiirc.com/client/irc.freenode.net/?#pret
 [travis]: https://travis-ci.org/pret/pokecrystal
 [travis-badge]: https://travis-ci.org/pret/pokecrystal.svg?branch=master
+
+# What's been added?
+Fairy type, running shoes, physical/special split, QoL changes, weather icons in battle, automatic weather, and more!
