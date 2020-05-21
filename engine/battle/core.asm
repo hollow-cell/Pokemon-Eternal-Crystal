@@ -110,10 +110,67 @@ DoBattle:
 	call SpikesDamage
 
 .not_linked_2
+	call StartAutomaticBattleWeather
 	jp BattleTurn
 
 .tutorial_debug
 	jp BattleMenu
+
+StartAutomaticBattleWeather:
+	call GetAutomaticBattleWeather
+	and a
+	ret z
+; get current AutomaticWeatherEffects entry
+	dec a
+	ld hl, AutomaticWeatherEffects
+	ld bc, 5 ; size of one entry
+	call AddNTimes
+; [wBattleWeather] = weather
+	ld a, [hli]
+	ld [wBattleWeather], a
+; de = animation
+	ld a, [hli]
+	ld e, a
+	ld a, [hli]
+	ld d, a
+; hl = text pointer
+	ld a, [hli]
+	ld h, [hl]
+	ld l, a
+; start weather for 255 turns
+	ld a, 255
+	ld [wWeatherCount], a
+	push hl
+	call Call_PlayBattleAnim ; uses de
+	pop hl
+	call StdBattleTextbox ; uses hl
+	jp EmptyBattleTextbox
+
+GetAutomaticBattleWeather:
+	ld hl, AutomaticWeatherMaps
+	ld a, [wMapGroup]
+	ld b, a
+	ld a, [wMapNumber]
+	ld c, a
+.loop
+	ld a, [hli] ; group
+	and a
+	ret z ; end
+	cp b
+	jr nz, .wrong_group
+	ld a, [hli] ; map
+	cp c
+	jr nz, .wrong_map
+	ld a, [hl] ; weather
+	ret
+
+.wrong_group:
+	inc hl ; skip map
+.wrong_map
+	inc hl ; skip weather
+	jr .loop
+
+INCLUDE "data/battle/automatic_weather.asm"
 
 WildFled_EnemyFled_LinkBattleCanceled:
 	call SafeLoadTempTilemapToTilemap
@@ -196,6 +253,9 @@ BattleTurn:
 	jr nz, .quit
 .skip_iteration
 	call ParsePlayerAction
+	push af
+	call ClearSprites
+	pop af
 	jr nz, .loop1
 
 	call EnemyTriesToFlee
@@ -2182,6 +2242,43 @@ UpdateBattleStateAndExperienceAfterEnemyFaint:
 	ld [wBattleParticipantsNotFainted], a
 	ret
 
+ApplyExperienceAfterEnemyCaught:
+	call IsAnyMonHoldingExpShare
+	jr z, .skip_exp
+	ld hl, wEnemyMonBaseStats
+	ld b, wEnemyMonEnd - wEnemyMonBaseStats
+.loop
+	srl [hl]
+	inc hl
+	dec b
+	jr nz, .loop
+
+.skip_exp
+	ld hl, wEnemyMonBaseStats
+	ld de, wBackupEnemyMonBaseStats
+	ld bc, wEnemyMonEnd - wEnemyMonBaseStats
+	call CopyBytes
+	xor a
+	ld [wGivingExperienceToExpShareHolders], a
+	call GiveExperiencePoints
+	call IsAnyMonHoldingExpShare
+	ret z
+
+	ld a, [wBattleParticipantsNotFainted]
+	push af
+	ld a, d
+	ld [wBattleParticipantsNotFainted], a
+	ld hl, wBackupEnemyMonBaseStats
+	ld de, wEnemyMonBaseStats
+	ld bc, wEnemyMonEnd - wEnemyMonBaseStats
+	call CopyBytes
+	ld a, $1
+	ld [wGivingExperienceToExpShareHolders], a
+	call GiveExperiencePoints
+	pop af
+	ld [wBattleParticipantsNotFainted], a
+	ret
+
 IsAnyMonHoldingExpShare:
 	ld a, [wPartyCount]
 	ld b, a
@@ -2350,7 +2447,11 @@ WinTrainerBattle:
 	ld a, b
 	call z, PlayVictoryMusic
 	callfar Battle_GetTrainerName
+	ld hl, BattleText_PluralEnemyWereDefeated
+	call IsPluralTrainer
+	jr z, .got_defeat_phrase
 	ld hl, BattleText_EnemyWasDefeated
+.got_defeat_phrase:
 	call StdBattleTextbox
 
 	call IsMobileBattle
@@ -2592,6 +2693,12 @@ IsGymLeaderCommon:
 	ret
 
 INCLUDE "data/trainers/leaders.asm"
+
+IsPluralTrainer:
+; return z for plural trainers
+	ld a, [wOtherTrainerClass]
+	cp TWINS
+	ret
 
 HandlePlayerMonFaint:
 	call FaintYourPokemon
@@ -2908,9 +3015,15 @@ LostBattle:
 	bit 0, a
 	jr nz, .battle_tower
 
-	ld a, [wBattleType]
-	cp BATTLETYPE_CANLOSE
-	jr nz, .not_canlose
+	ld a, [wBattleMode]
+	dec a ; wild?
+	jr z, .no_loss_text
+
+	ld hl, wLossTextPointer
+	ld a, [hli]
+	ld h, [hl]
+	and h
+	jr z, .no_loss_text
 
 ; Remove the enemy from the screen.
 	hlcoord 0, 0
@@ -2946,7 +3059,7 @@ LostBattle:
 	call ClearBGPalettes
 	ret
 
-.not_canlose
+.no_loss_text
 	ld a, [wLinkMode]
 	and a
 	jr nz, .LostLinkBattle
@@ -3479,7 +3592,11 @@ OfferSwitch:
 	ld a, [wCurPartyMon]
 	push af
 	callfar Battle_GetTrainerName
+	ld hl, BattleText_PluralEnemyAreAboutToUseWillPlayerChangeMon
+	call IsPluralTrainer
+	jr z, .got_switch_phrase
 	ld hl, BattleText_EnemyIsAboutToUseWillPlayerChangeMon
+.got_switch_phrase:
 	call StdBattleTextbox
 	lb bc, 1, 7
 	call PlaceYesNoBox
@@ -4626,7 +4743,7 @@ CheckDanger:
 
 .no_danger
 	ld hl, wLowHealthAlarm
-	res DANGER_ON_F, [hl]
+	ld [hl], 0
 	jr .done
 
 .danger
@@ -5421,6 +5538,7 @@ MoveSelectionScreen:
 
 .battle_player_moves
 	call MoveInfoBox
+	call GetWeatherImage
 	ld a, [wMoveSwapBuffer]
 	and a
 	jr z, .interpret_joypad
@@ -5507,6 +5625,9 @@ MoveSelectionScreen:
 	ld hl, BattleText_TheresNoPPLeftForThisMove
 
 .place_textbox_start_over
+	push hl
+	call ClearSprites
+	pop hl
 	call StdBattleTextbox
 	call SafeLoadTempTilemapToTilemap
 	jp MoveSelectionScreen
@@ -5674,14 +5795,18 @@ MoveInfoBox:
 	ld [wStringBuffer1], a
 	call .PrintPP
 
+	callfar UpdateMoveData
+	ld a, [wPlayerMoveStruct + MOVE_ANIM]
+	ld b, a
+	farcall GetMoveCategoryName
 	hlcoord 1, 9
-	ld de, .Type
+	ld de, wStringBuffer1
 	call PlaceString
 
-	hlcoord 7, 11
+	ld h, b
+	ld l, c
 	ld [hl], "/"
 
-	callfar UpdateMoveData
 	ld a, [wPlayerMoveStruct + MOVE_ANIM]
 	ld b, a
 	hlcoord 2, 10
@@ -5692,8 +5817,6 @@ MoveInfoBox:
 
 .Disabled:
 	db "Disabled!@"
-.Type:
-	db "TYPE/@"
 
 .PrintPP:
 	hlcoord 5, 11
@@ -7059,6 +7182,13 @@ GiveExperiencePoints:
 	inc de
 	dec c
 	jr nz, .stat_exp_loop
+	pop bc
+	ld hl, MON_LEVEL
+	add hl, bc
+	ld a, [hl]
+	cp MAX_LEVEL
+	jp nc, .next_mon
+	push bc
 	xor a
 	ldh [hMultiplicand + 0], a
 	ldh [hMultiplicand + 1], a
@@ -7357,10 +7487,30 @@ GiveExperiencePoints:
 	ld c, PARTY_LENGTH
 	ld d, 0
 .count_loop
+	push bc
+	push de
+	ld a, [wPartyCount]
+	cp c
+	jr c, .no_mon
+	ld a, c
+	dec a
+	ld hl, wPartyMon1Level
+	call GetPartyLocation
+	ld a, [hl]
+.no_mon
+	cp MAX_LEVEL
+	pop de
+	pop bc
+	jr nz, .gains_exp
+	srl b
+	ld a, d
+	jr .no_exp
+.gains_exp
 	xor a
 	srl b
 	adc d
 	ld d, a
+.no_exp
 	dec c
 	jr nz, .count_loop
 	cp 2
@@ -9074,6 +9224,10 @@ BattleStartMessage:
 
 	farcall Battle_GetTrainerName
 
+	ld hl, WantToBattlePluralText
+	call IsPluralTrainer
+	jr z, .PlaceBattleStartText
+
 	ld hl, WantsToBattleText
 	jr .PlaceBattleStartText
 
@@ -9141,3 +9295,52 @@ BattleStartMessage:
 	farcall Mobile_PrintOpponentBattleMessage
 
 	ret
+
+GetWeatherImage:
+	ld a, [wBattleWeather]
+	and a
+	ret z
+	cp WEATHER_RAIN
+	ld de, RainWeatherImage
+	lb bc, PAL_BATTLE_OB_BLUE, 4
+	jr z, .done
+	cp WEATHER_SUN
+	ld de, SunWeatherImage
+	ld b, PAL_BATTLE_OB_YELLOW
+	jr z, .done
+	cp WEATHER_SANDSTORM
+	ld de, SandstormWeatherImage
+	ld b, PAL_BATTLE_OB_BROWN
+	jr z, .done
+	ret
+	
+.done
+	push bc
+	ld b, BANK(WeatherImages) ; c = 4
+	ld hl, vTiles0
+	call Request2bpp
+	pop bc
+	ld hl, wVirtualOAMSprite00
+	ld de, .WeatherImageOAMData
+.loop
+	ld a, [de]
+	inc de
+	ld [hli], a
+	ld a, [de]
+	inc de
+	ld [hli], a
+	dec c
+	ld a, c
+	ld [hli], a
+	ld a, b
+	ld [hli], a
+	jr nz, .loop
+	ret
+
+.WeatherImageOAMData
+; positions are backwards since
+; we load them in reverse order
+	db $88, $1c ; y/x - bottom right
+	db $88, $14 ; y/x - bottom left
+	db $80, $1c ; y/x - top right
+	db $80, $14 ; y/x - top left

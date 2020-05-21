@@ -477,13 +477,14 @@ ClefairyEvosAttacks:
 	db 26, DEFENSE_CURL
 	db 34, METRONOME
 	db 43, MOONLIGHT
+	db 46, MOONBLAST
 	db 53, LIGHT_SCREEN
 	db 0 ; no more level-up moves
 
 ClefableEvosAttacks:
 	db 0 ; no more evolutions
 	db 1, SING
-	db 1, DOUBLESLAP
+	db 1, MOONBLAST
 	db 1, METRONOME
 	db 1, MOONLIGHT
 	db 0 ; no more level-up moves
@@ -567,6 +568,7 @@ OddishEvosAttacks:
 	db 16, STUN_SPORE
 	db 18, SLEEP_POWDER
 	db 23, ACID
+	db 28, MOONBLAST
 	db 32, MOONLIGHT
 	db 39, PETAL_DANCE
 	db 0 ; no more level-up moves
@@ -585,11 +587,12 @@ GloomEvosAttacks:
 	db 24, ACID
 	db 35, MOONLIGHT
 	db 44, PETAL_DANCE
+	db 45, MOONBLAST
 	db 0 ; no more level-up moves
 
 VileplumeEvosAttacks:
 	db 0 ; no more evolutions
-	db 1, ABSORB
+	db 1, MOONBLAST
 	db 1, SWEET_SCENT
 	db 1, STUN_SPORE
 	db 1, PETAL_DANCE
@@ -837,6 +840,7 @@ AbraEvosAttacks:
 	db 0 ; no more level-up moves
 
 KadabraEvosAttacks:
+	db EVOLVE_ITEM, MIST_STONE, ALAKAZAM
 	db EVOLVE_TRADE, -1, ALAKAZAM
 	db 0 ; no more evolutions
 	db 1, TELEPORT
@@ -881,6 +885,7 @@ MachopEvosAttacks:
 	db 0 ; no more level-up moves
 
 MachokeEvosAttacks:
+	db EVOLVE_ITEM, MIST_STONE, MACHAMP
 	db EVOLVE_TRADE, -1, MACHAMP
 	db 0 ; no more evolutions
 	db 1, LOW_KICK
@@ -995,6 +1000,7 @@ GeodudeEvosAttacks:
 	db 0 ; no more level-up moves
 
 GravelerEvosAttacks:
+	db EVOLVE_ITEM, MIST_STONE, GOLEM
 	db EVOLVE_TRADE, -1, GOLEM
 	db 0 ; no more evolutions
 	db 1, TACKLE
@@ -1202,6 +1208,7 @@ MukEvosAttacks:
 	db 1, POISON_GAS
 	db 1, POUND
 	db 1, HARDEN
+	db 1, MOONBLAST
 	db 33, HARDEN
 	db 37, DISABLE
 	db 45, SLUDGE
@@ -1249,6 +1256,7 @@ GastlyEvosAttacks:
 	db 0 ; no more level-up moves
 
 HaunterEvosAttacks:
+	db EVOLVE_ITEM, MIST_STONE, GENGAR
 	db EVOLVE_TRADE, -1, GENGAR
 	db 0 ; no more evolutions
 	db 1, HYPNOSIS
@@ -2227,6 +2235,7 @@ HoothootEvosAttacks:
 	db 22, REFLECT
 	db 28, TAKE_DOWN
 	db 34, CONFUSION
+	db 40, MOONBLAST
 	db 48, DREAM_EATER
 	db 0 ; no more level-up moves
 
@@ -2242,6 +2251,7 @@ NoctowlEvosAttacks:
 	db 25, REFLECT
 	db 33, TAKE_DOWN
 	db 41, CONFUSION
+	db 47, MOONBLAST
 	db 57, DREAM_EATER
 	db 0 ; no more level-up moves
 
@@ -2470,6 +2480,7 @@ BellossomEvosAttacks:
 	db 1, STUN_SPORE
 	db 1, PETAL_DANCE
 	db 55, SOLARBEAM
+	db 60, MOONBLAST
 	db 0 ; no more level-up moves
 
 MarillEvosAttacks:
@@ -2483,6 +2494,7 @@ MarillEvosAttacks:
 	db 21, BUBBLEBEAM
 	db 28, DOUBLE_EDGE
 	db 36, RAIN_DANCE
+	db 38, MOONBLAST
 	db 0 ; no more level-up moves
 
 AzumarillEvosAttacks:
@@ -2498,6 +2510,7 @@ AzumarillEvosAttacks:
 	db 25, BUBBLEBEAM
 	db 36, DOUBLE_EDGE
 	db 48, RAIN_DANCE
+	db 60, MOONBLAST
 	db 0 ; no more level-up moves
 
 SudowoodoEvosAttacks:
@@ -2822,6 +2835,7 @@ GranbullEvosAttacks:
 	db 28, ROAR
 	db 38, RAGE
 	db 51, TAKE_DOWN
+	db 60, MOONBLAST
 	db 0 ; no more level-up moves
 
 QwilfishEvosAttacks:

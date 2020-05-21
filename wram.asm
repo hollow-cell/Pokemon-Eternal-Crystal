@@ -811,13 +811,12 @@ wDexListingCursorBackup:: db
 wBackupDexListingCursor:: db
 wBackupDexListingPage:: db
 wDexCurLocation:: db
-if DEF(_CRYSTAL11)
 wPokedexStatus:: db
+wPokedexShinyToggle::
+; bit 0: set if displaying shiny palettes
+	db
 wPokedexDataEnd::
-else
-wPokedexDataEnd:: ds 1
-endc
-	ds 2
+	ds 1
 
 NEXTU ; c6d0
 ; pokegear
@@ -1408,12 +1407,7 @@ wCreditsLYOverride:: db
 NEXTU ; cf64
 ; pokedex
 wPrevDexEntryJumptableIndex:: db
-if DEF(_CRYSTAL11)
 wPrevDexEntryBackup:: db
-else
-wPrevDexEntryBackup::
-wPokedexStatus:: db
-endc
 
 NEXTU ; cf64
 ; pokegear
@@ -1703,6 +1697,17 @@ wMartItem7BCD:: ds 3
 wMartItem8BCD:: ds 3
 wMartItem9BCD:: ds 3
 wMartItem10BCD:: ds 3
+wMartItem11BCD:: ds 3
+wMartItem12BCD:: ds 3
+wMartItem13BCD:: ds 3
+wMartItem14BCD:: ds 3
+wMartItem15BCD:: ds 3
+wMartItem16BCD:: ds 3
+wMartItem17BCD:: ds 3
+wMartItem18BCD:: ds 3
+wMartItem19BCD:: ds 3
+wMartItem20BCD:: ds 3
+
 
 NEXTU ; d002
 ; town map data
@@ -2004,7 +2009,7 @@ wUsingItemWithSelect:: db ; d0ef
 
 UNION ; d0f0
 ; mart data
-wCurMart:: ds 16
+wCurMart:: ds 22
 wCurMartEnd::
 
 NEXTU ; d0f0
@@ -2398,7 +2403,7 @@ wScriptTextBank::
 wPriorityScriptAddr::
 wScriptTextAddr::
 	dw ; d44f
-	ds 1
+wWildBattlePanic:: db
 wWildEncounterCooldown:: db ; d452
 wXYComparePointer:: dw ; d453
 	ds 4
@@ -2851,7 +2856,7 @@ wPhoneList:: ds CONTACT_LIST_SIZE ; dc7c
 	ds 23
 
 wLuckyNumberShowFlag:: db ; dc9d
-	ds 1
+wRepelType:: db
 wLuckyIDNumber:: dw ; dc9f
 
 wRepelEffect:: db ; If a Repel is in use, it contains the nr of steps it's still active
