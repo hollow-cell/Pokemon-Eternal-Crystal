@@ -75,6 +75,12 @@ CheckMagikarpLength:
 	text_far _MagikarpGuruMeasureText
 	text_end
 
+<<<<<<< HEAD
+=======
+.feetinchchars
+INCBIN "gfx/font/feet_inches.2bpp"
+
+>>>>>>> parent of 792b2331a... Revert "255 tiles patch"
 PrintMagikarpLength:
 	ld hl, wStringBuffer1
 	ld de, wMagikarpLength
